@@ -1,11 +1,24 @@
 import 'dart:ui';
 
-class Category {
-  const Category({
-    required this.type,
-    required this.color,
-  });
+enum Categories {
+  vegetables,
+  fruit,
+  meat,
+  dairy,
+  carbs,
+  sweets,
+  spices,
+  convenience,
+  hygiene,
+  other,
+}
 
-  final String type;
+class Category {
+  const Category(
+    this.title,
+    this.color,
+  );
+
+  final String title;
   final Color color;
 }
