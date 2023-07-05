@@ -38,8 +38,6 @@ class _NewItemState extends State<NewItem> {
         }),
       );
       print(response);
-      print(response);
-
       if (!context.mounted) {
         return;
       }
