@@ -18,6 +18,7 @@ class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
   var _isLoading = true;
   String? _error;
+  final dBUrl = Uri.parse(dotenv.env['API_URL']!).toString();
 
   @override
   void initState() {
@@ -26,13 +27,20 @@ class _GroceryListState extends State<GroceryList> {
   }
 
   void _loadItems() async {
-    final dBUrl = Uri.parse(dotenv.env['API_URL']!).toString();
     final url = Uri.https(dBUrl, 'shopping_list.json');
     final response = await http.get(url);
 
     if (response.statusCode > 400) {
       setState(() {
         _error = 'Something went wrong!';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    if (response.body == 'null') {
+      setState(() {
+        _error = 'No items found!';
         _isLoading = false;
       });
       return;
@@ -76,10 +84,21 @@ class _GroceryListState extends State<GroceryList> {
     });
   }
 
-  void _removeItem(int index) {
+  void _removeItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
     setState(() {
-      _groceryItems.removeAt(index);
+      _groceryItems.remove(item);
     });
+    final url = Uri.https(dBUrl, 'shopping_list/${item.id}.json');
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _error = 'Something went wrong while deleting the item!';
+        _groceryItems.insert(index, item);
+      });
+      return;
+    }
   }
 
   Future<bool?> _confirmDismiss(int index) async {
@@ -140,7 +159,7 @@ class _GroceryListState extends State<GroceryList> {
             ),
             confirmDismiss: (_) => _confirmDismiss(index),
             onDismissed: (_) {
-              _removeItem(index);
+              _removeItem(_groceryItems[index]);
             },
             child: ListTile(
               title: Text(groceryItem.name),
